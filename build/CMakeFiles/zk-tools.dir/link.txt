@@ -1,0 +1,1 @@
+/usr/bin/g++  -g   CMakeFiles/zk-tools.dir/main.cpp.o CMakeFiles/zk-tools.dir/arithmetic/virtual_polynomial.cpp.o CMakeFiles/zk-tools.dir/arithmetic/util.cpp.o  -o zk-tools  -lff -lgmp 

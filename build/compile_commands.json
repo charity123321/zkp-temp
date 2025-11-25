@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/yan/zk-tools/build",
+  "command": "/usr/bin/g++   -I/home/yan/zk-tools/. -I/home/yan/zk-tools/include -I/home/yan/zk-tools/arithmetic -I/home/yan/zk-tools/subroutines/poly_iop -I/home/yan/zk-tools/transcript -I/home/yan/zk-tools/field_and_polynomial  -g   -Wall -Wextra -Werror -std=gnu++17 -o CMakeFiles/zk-tools.dir/main.cpp.o -c /home/yan/zk-tools/main.cpp",
+  "file": "/home/yan/zk-tools/main.cpp"
+},
+{
+  "directory": "/home/yan/zk-tools/build",
+  "command": "/usr/bin/g++   -I/home/yan/zk-tools/. -I/home/yan/zk-tools/include -I/home/yan/zk-tools/arithmetic -I/home/yan/zk-tools/subroutines/poly_iop -I/home/yan/zk-tools/transcript -I/home/yan/zk-tools/field_and_polynomial  -g   -Wall -Wextra -Werror -std=gnu++17 -o CMakeFiles/zk-tools.dir/arithmetic/virtual_polynomial.cpp.o -c /home/yan/zk-tools/arithmetic/virtual_polynomial.cpp",
+  "file": "/home/yan/zk-tools/arithmetic/virtual_polynomial.cpp"
+},
+{
+  "directory": "/home/yan/zk-tools/build",
+  "command": "/usr/bin/g++   -I/home/yan/zk-tools/. -I/home/yan/zk-tools/include -I/home/yan/zk-tools/arithmetic -I/home/yan/zk-tools/subroutines/poly_iop -I/home/yan/zk-tools/transcript -I/home/yan/zk-tools/field_and_polynomial  -g   -Wall -Wextra -Werror -std=gnu++17 -o CMakeFiles/zk-tools.dir/arithmetic/util.cpp.o -c /home/yan/zk-tools/arithmetic/util.cpp",
+  "file": "/home/yan/zk-tools/arithmetic/util.cpp"
+}
+]

@@ -1,0 +1,3 @@
+/home/yan/zk-tools/build/CMakeFiles/rebuild_cache.dir
+/home/yan/zk-tools/build/CMakeFiles/edit_cache.dir
+/home/yan/zk-tools/build/CMakeFiles/zk-tools.dir
