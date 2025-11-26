@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <utility>
+#include<random>
 
 #include"field_and_polynomial/temp.h"
 #include "multilinear_polynomial.h"
@@ -132,7 +133,7 @@ public:
         const F &coefficient)
     {
         // 变量数不等抛出错误
-        if (mle.num_vars() != aux_info.num_variables)
+        if ((*mle).num_vars() != aux_info.num_variables)
         {
             throw;
         }
@@ -144,7 +145,7 @@ public:
         // 更新 raw_pointers_lookup_table和flattened_ml_extensions
         if (it != raw_pointers_lookup_table.end())
         {
-            mle_index = it.second;
+            mle_index = it->second;
         }
         else
         {
@@ -194,16 +195,18 @@ public:
     }
 
     // 随机生成虚拟多项式,并返回其在布尔超立方体上的总和
-    template <typename Rng>
+
     pair<VirtualPolynomial, F> rand(
         size_t nv,
         pair<size_t, size_t> num_multiplicands_range,
-        size_t num_products,
-        Rng &rng)
-    {
+        size_t num_products
+    ){
         VirtualPolynomial poly(nv);
         F sum = F ::zero();
 
+        // gen是一个使用rd()作种子初始化的标准梅森旋转算法的随机数发生器
+        random_device rd;
+        mt19937 gen(rd()); 
         // 随机数生成器
         uniform_int_distribution<size_t> dist(
             num_multiplicands_range.first,
@@ -212,9 +215,9 @@ public:
         for (size_t i = 0; i < num_products; ++i)
         {
             // 先随机生成mle_list
-            size_t num_multiplicands = dist(rng);
-            auto [product, product_sum] = random_mle_list<F, Rng>(nv, num_multiplicands, rng);
-            F coefficient = F ::random(rng);
+            size_t num_multiplicands = dist(gen);
+            auto [product, product_sum] = random_mle_list<F>(nv, num_multiplicands);
+            F coefficient = F ::random_element();
             // 再添加到VirtualPolynomial
             poly.add_mle_list(product, coefficient);
             sum = sum + product_sum * coefficient;
@@ -224,14 +227,18 @@ public:
     }
 
     // 生成和为0的随机虚拟多项式
-    template <typename Rng>
+   
     VirtualPolynomial rand_zero(
         size_t nv,
         pair<size_t, size_t> num_multiplicands_range,
-        size_t num_products,
-        Rng &rng)
-    {
+        size_t num_products
+    ){
         VirtualPolynomial poly(nv);
+
+        
+        // gen是一个使用rd()作种子初始化的标准梅森旋转算法的随机数发生器
+        random_device rd;
+        mt19937 gen(rd()); 
 
         uniform_int_distribution<size_t> dist(
             num_multiplicands_range.first,
@@ -239,9 +246,9 @@ public:
 
         for (size_t i = 0; i < num_products; ++i)
         {
-            size_t num_multiplicands = dist(rng);
-            auto product = random_zero_mle_list<F, Rng>(nv, num_multiplicands, rng);
-            F coefficient = F::random(rng);
+            size_t num_multiplicands = dist(gen);
+            auto product = random_zero_mle_list<F>(nv, num_multiplicands);
+            F coefficient = F::random_element();
 
             poly.add_mle_list(product, coefficient);
         }
@@ -270,30 +277,114 @@ public:
     }
 };
 
-// 构建等式多项式辅助函数
 template<typename F>
 void build_eq_x_r_helper(
-    const std::vector<F>& r,
-    std::vector<F>& buf);
+    const vector<F>& r,
+    vector<F>& buf
+){
+    // r为空，则抛出错误
+    if(r.empty()){
+        throw;
+    }else if(r.size()==1){
+        buf.clear();
+        buf.push_back(F::one()-r[0]);
+        buf.push_back(r[0]);
+    }else{
+        vector<F> sub_r(r.begin()+1,r.end());
+        build_eq_x_r_helper(sub_r,buf);
 
-// 构建等式多项式求值向量
+        // suppose at the previous step we received [b_1, ..., b_k]
+        // for the current step we will need
+        // if x_0 = 0:   (1-r0) * [b_1, ..., b_k]
+        // if x_0 = 1:   r0 * [b_1, ..., b_k]
+        // let mut res = vec![];
+        // for &b_i in buf.iter() {
+        //     let tmp = r[0] * b_i;
+        //     res.push(b_i - tmp);
+        //     res.push(tmp);
+        // }
+        // *buf = res;
+        vector<F> res(buf.size()*2);
+
+        for(size_t i=0;i<buf.size();++i){
+            F tmp=r[0]*buf[i];
+            res[2*i]=buf[i]-tmp;
+            res[2*i+1]=tmp;
+        }
+        buf=move(res);
+    }
+}
+
 template<typename F>
-std::vector<F> build_eq_x_r_vec(std::vector<F>& r);
-
-// 构建等式多项式
+vector<F> build_eq_x_r_vec(const vector<F>& r){
+    // we build eq(x,r) from its evaluations
+    // we want to evaluate eq(x,r) over x \in {0, 1}^num_vars
+    // for example, with num_vars = 4, x is a binary vector of 4, then
+    //  0 0 0 0 -> (1-r0)   * (1-r1)    * (1-r2)    * (1-r3)
+    //  1 0 0 0 -> r0       * (1-r1)    * (1-r2)    * (1-r3)
+    //  0 1 0 0 -> (1-r0)   * r1        * (1-r2)    * (1-r3)
+    //  1 1 0 0 -> r0       * r1        * (1-r2)    * (1-r3)
+    //  ....
+    //  1 1 1 1 -> r0       * r1        * r2        * r3
+    // we will need 2^num_var evaluations
+    
+    // r为空，则抛出错误
+    if(r.empty()){
+        throw;
+    }
+    vector<F> eval;
+    build_eq_x_r_helper(r,eval);
+    return eval;
+}
+/// This function build the eq(x, r) polynomial for any given r.
+///
+/// Evaluate
+///      eq(x,y) = \prod_i=1^num_var (x_i * y_i + (1-x_i)*(1-y_i))
+/// over r, which is
+///      eq(x,y) = \prod_i=1^num_var (x_i * r_i + (1-x_i)*(1-r_i))
 template<typename F>
-std::shared_ptr<DenseMultilinearExtension<F>> build_eq_x_r(const std::vector<F>& r);
+shared_ptr<DenseMultilinearExtension<F>> build_eq_x_r(const vector<F>& r){
+    auto evals=build_eq_x_r_vec<F>(r);
+    return make_shared<DenseMultilinearExtension<F>>(
+        DenseMultilinearExtension<F>(r.size(),move(evals))
+    );
+}
 
-// 构建f_hat多项式
+// 计算 \hat f(x) = \sum_{x_i \in eval_x} f(x_i) eq(x,r)
 template<typename F>
 VirtualPolynomial<F> build_f_hat(
     const VirtualPolynomial<F>& poly,
-    const std::vector<F>& r);
+    const vector<F>& r
+){
+    // 变量不相等则抛出错误
+    if (poly.aux_info.num_variables!=r.size()){
+        throw; 
+    }
+    auto eq_x_r=build_eq_x_r<F>(r);
+    VirtualPolynomial<F> res=poly;
+    res.mul_by_mle(eq_x_r,F::one());
+    
+    return res;
+}
 
-// 计算eq(x,y)的值
+
+// 计算 eq(x,y)=\prod (x_i * y_i + (1-x_i) * (1-y_i))
 template<typename F>
 F eq_eval(
-    const std::vector<F>& x,
-    const std::vector<F>& y);
+    const vector<F>& x,
+    const vector<F>& y
+){
+    // 两个向量长度不相等，抛出错误
+    if(x.size()!=y.size()){
+        throw;
+    }
+    F res =F::one();
+    for(size_t i=0;i<x.size();++i){
+        F xi_yi=x[i]*y[i];
+        res=res*(F::one()+xi_yi+xi_yi-x[i]-y[i]);
+    }
+    return res;
+}
+
 
 #endif // VIRTUAL_POLYNOMIAL_H

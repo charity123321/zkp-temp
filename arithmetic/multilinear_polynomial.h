@@ -16,9 +16,9 @@ using namespace std;
 // 随机生成每个MLE在各个布尔顶点上的值
 // 计算 sum_{x \in B_\mu} { \prod_i MLE_i(x) }
 // 并返回MLE列表
-template <typename F, typename R>
+template <typename F>
 pair<vector<shared_ptr<DenseMultilinearExtension<F>>>, F>
-random_mle_list(size_t nv, size_t degree, R &rng)
+random_mle_list(size_t nv, size_t degree)
 {
 
     vector<vector<F>> multiplicands(degree);
@@ -28,14 +28,14 @@ random_mle_list(size_t nv, size_t degree, R &rng)
     }
     F sum = F::zero();
     // 遍历布尔超立方体的所有点 (2^nv 个点)
-    for (size_t i = 0; i < (1 << nv); ++i)
+    for (size_t i = 0; i < (1UL << nv); ++i)
     {
         F product = F::one();
 
         // 为每个多项式生成随机值并计算乘积
         for (auto &eval_vec : multiplicands)
         {
-            F val = F::random(rng);
+            F val = F::random_element();
             eval_vec.push_back(val);
             product *= val;
         }
@@ -48,15 +48,15 @@ random_mle_list(size_t nv, size_t degree, R &rng)
     for (auto &eval_vec : multiplicands)
     {
         list.push_back(make_shared<DenseMultilinearExtension<F>>(
-            DenseMultilinearExtension<F>::from_evaluations_vec(nv, move(eval_vec))));
+            DenseMultilinearExtension<F>(nv, move(eval_vec))));
     }
     return {list, sum};
 }
 
 // 创建和为0的MLEs：固定MLE_1=0即可
-template <typename F, typename R>
+template <typename F>
 vector<shared_ptr<DenseMultilinearExtension<F>>>
-random_zero_mle_list(size_t nv, size_t degree, R &rng)
+random_zero_mle_list(size_t nv, size_t degree)
 {
     vector<vector<F>> multiplicands(degree);
     for (auto&  vec : multiplicands)
@@ -64,14 +64,14 @@ random_zero_mle_list(size_t nv, size_t degree, R &rng)
         vec.reserve(1 << nv);
     }
 
-    for (size_t i = 0; i < 1; ++i)
+    for (size_t i = 0; i < (1UL<<nv); ++i)
     {
         // MLE_1=0
         multiplicands[0].push_back(F::zero());
         // 其余MLE随机生成
         for (size_t j = 1; j < degree; ++j)
         {
-            multiplicands[j].push_back(F::random(rng));
+            multiplicands[j].push_back(F::random_element());
         }
     }
     // 构建多项式列表
@@ -80,7 +80,7 @@ random_zero_mle_list(size_t nv, size_t degree, R &rng)
     for (auto &eval_vec : multiplicands)
     {
         list.push_back(make_shared<DenseMultilinearExtension<F>>(
-            DenseMultilinearExtension<F>::from_evaluations_vec(nv, move(eval_vec))));
+            DenseMultilinearExtension<F>(nv, move(eval_vec))));
     }
 
     return list;
