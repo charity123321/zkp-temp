@@ -5,11 +5,13 @@
 
 #include "arithmetic/virtual_polynomial.h"
 
+using namespace std;
+
 // Prover --> Verifier 多项式的求值列表
 template <typename F>
 struct IOPProverMessage
 {
-    std::vector<F> evaluations;
+    vector<F> evaluations;
 };
 
 // IOP Proof：
@@ -18,21 +20,21 @@ struct IOPProverMessage
 template <typename F>
 struct IOPProof
 {
-    std::vector<F> point;
-    std::vector<IOPProverMessage<F>> proofs;
+    vector<F> point;
+    vector<IOPProverMessage<F>> proofs;
 };
 
 // Prover State:
 template <typename F>
 struct IOPProverState
 {
-    std::vector<F> challenges;
+    vector<F> challenges;
     size_t round;
     // pointer to the virtual polynomial
     VirtualPolynomial<F> poly;
     // points with precomputed barycentric weights for extrapolating smaller
     // degree uni-polys to `max_degree + 1` evaluations.
-    std::vector<std::pair<std::vector<F>, std::vector<F>>> extrapolation_aux;
+    vector<pair<vector<F>, vector<F>>> extrapolation_aux;
 };
 
 template <typename F>
@@ -42,14 +44,14 @@ struct IOPVerifierState
     size_t num_vars;
     size_t max_degree;
     bool finished;
-    vector<std::vector<F>> polynomials_received;
+    vector<vector<F>> polynomials_received;
     vector<F> challenge;
 };
 
 template <typename F>
 struct SumCheckSubClaim
 {
-    std::vector<F> point;
+    vector<F> point;
     F expected_evaluation;
 };
 

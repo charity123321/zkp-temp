@@ -105,11 +105,9 @@ private:
     IOPVerifierState<F> state_;
 
 public:
-    // using VPAuxInfo=VPAuxInfo<F>;
     using ProverMessage = IOPProverMessage<F>;
     using Challenge = F;
     using Transcript = SimpleTranscript;
-    // using SumCheckSubClaim=SumCheckSubClaim<F>;
 
     SumCheckVerifier verifier_init(const VPAuxInfo &index_info)
     {
@@ -134,10 +132,10 @@ public:
         const ProverMessage &prover_msg,
         Transcript &transcript)
     {
-        // 结束抛出错误
 
         if (state_.finished)
         {
+            cout << "Incorrect verifier state: Verifier is already finished." << endl;
             throw;
         }
 
@@ -180,10 +178,12 @@ public:
 
         if (!state_.finished)
         {
+            cout << "Incorrect verifier state: Verifier has not finished." << endl;
             throw;
         }
         if (state_.polynomials_received.size() != state_.num_vars)
         {
+            cout << "insufficient rounds." << endl;
             throw;
         }
 
@@ -197,20 +197,14 @@ public:
         {
             vector<F> &evaluations = state_.polynomials_received[i];
 
-            /*
-            cout<<"debug i :"<<i<<endl;
-            for(auto i:evaluations){
-                i.print();
-            }
-            cout<<endl;
-            */
             const F &challenge = state_.challenge[i];
 
-            /*
-            if(evaluations.size()!=state_.max_degree+1){
+            if (evaluations.size() != state_.max_degree + 1)
+            {
+                cout << "incorrect number of evaluations." << endl;
                 throw;
             }
-            */
+
             F interpolated = interpolate_uni_poly<F>(evaluations, challenge);
 
             expected_vec.push_back(interpolated);
@@ -224,13 +218,6 @@ public:
         {
             const auto &evaluations = state_.polynomials_received[i];
 
-            /*
-            cout<<"check evaluations:"<<endl;
-            for(auto& e:evaluations){
-                e.print();
-            }
-            cout<<endl;
-            */
             const F &expected = expected_vec[i];
 
             // the deferred check during the interactive phase:
@@ -238,13 +225,7 @@ public:
             // 每一轮的和等于上一轮的期望值
             if (evaluations[0] + evaluations[1] != expected)
             {
-                /*
-                cout<<"debug verifier  i:   "<<i<<endl;
-                expected.print();
-                cout<<endl;
-                (evaluations[0]+evaluations[1]).print();
-                cout<<endl;
-                */
+                cout << "Prover message is not consistent with the claim." << endl;
                 throw;
             }
         }

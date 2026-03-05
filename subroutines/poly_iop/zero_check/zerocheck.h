@@ -75,7 +75,8 @@ public:
         return ZeroCheckSubClaim<F>{
             sum_subclaim.point,
             expected_evaluation,
-            r};
+            r
+        };
     }
 };
 

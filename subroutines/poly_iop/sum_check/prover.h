@@ -9,7 +9,7 @@
 #include "arithmetic/multilinear_polynomial.h"
 using namespace std;
 
-// 计算w_j=1/prod_{i\neq j}(x_i-x_j)
+// 计算 w_j = 1/prod_{i\neq j}(x_i-x_j)
 template <typename F>
 vector<F> barycenter_weights(const vector<F> &points)
 {
@@ -45,15 +45,11 @@ F extrapolate(
     const vector<F> &evals,
     const F &at)
 {
-    if (points.size() != weights.size() || points.size() != evals.size())
-    {
-        throw;
-    }
 
     vector<F> coeffs;
     coeffs.reserve(points.size());
 
-    // 计算coeffs[i]=1/(at-points[i])
+    // 计算 coeffs[i] = 1/(at-points[i])
     for (F point : points)
     {
         coeffs.push_back(at - point);
@@ -61,7 +57,7 @@ F extrapolate(
 
     libff::batch_invert(coeffs);
 
-    // 计算coeffs[i]=w_i/(at-points[i])
+    // 计算 coeffs[i] = w_i/(at-points[i])
     F sum = F::zero();
     for (size_t i = 0; i < coeffs.size(); ++i)
     {
@@ -69,10 +65,10 @@ F extrapolate(
         sum += coeffs[i];
     }
 
-    // 计算 sum_inv=1/sum(w_i/(at-points[i]))
+    // 计算 sum_inv = 1/sum(w_i/(at-points[i]))
     F sum_inv = sum.inverse();
 
-    // 计算 sum(coeffs[i]*f_i)=sum((w_i*f_i)/(at-points[i]))
+    // 计算 sum(coeffs[i]*f_i) = sum((w_i*f_i)/(at-points[i]))
     F numerator = F::zero();
     for (size_t i = 0; i < coeffs.size(); ++i)
     {
@@ -93,7 +89,7 @@ public:
     {
         return state_;
     }
-    // using VirtualPolynomial=VirtualPolynomial<F>;
+
     using ProverMessage = IOPProverMessage<F>;
     using ProverState = IOPProverState<F>;
 
@@ -129,6 +125,7 @@ public:
         // 轮数不应该超过变量数
         if (state_.round >= state_.poly.aux_info.num_variables)
         {
+            cout << "Prove is not active." << endl;
             throw;
         }
 
@@ -157,6 +154,7 @@ public:
             // 协议从P开始
             if (state_.round == 0)
             {
+                cout << "first round should be prover first." << endl;
                 throw;
             }
             state_.challenges.push_back(challenge.value());
@@ -170,27 +168,14 @@ public:
         else if (state_.round > 0)
         {
             // V的消息为空
+            cout << "Verifier message is empty." << endl;
             throw;
         }
-        /*
-        cout<<"check mle:"<<endl;
-        for(DenseMultilinearExtension<F> DM:flattened_ml_extensions){
-            for(auto& e:DM.get_evaluations()){
-                e.print();
-            }
-        }
-        */
 
         state_.round++;
 
         const auto &products_list = state_.poly.products;
         vector<F> products_sum(state_.poly.aux_info.max_degree + 1, F::zero());
-
-        /*
-        cout<<"check products:"<<endl;
-        state_.poly.printproduct();
-        cout<<endl;
-        */
 
         // Step 2: generate sum for the partial evaluated polynomial:
         // f(r_1, ... r_m,, x_{m+1}... x_n)
@@ -205,13 +190,8 @@ public:
             // 乘积项中的每个mle (例如[g_1,g_2])，
             // 计算 acc[i]=sum g_1(r_1,r_2,...,r_m,i,vec{b})*g_2(r_1,...,r_m,i,vec{b})
 
-            /*
-            cout<<"check num_point:"<<endl;
-            cout<<num_points<<endl;
-            */
             for (size_t b = 0; b < num_points; ++b)
             {
-
                 vector<pair<F, F>> buf; //(eval,step)
                 for (size_t idx : product_indices)
                 {
@@ -220,14 +200,12 @@ public:
                     F step = table.get_evaluations()[(b << 1) + 1] - table.get_evaluations()[b << 1];
                     buf.emplace_back(eval, step);
                 }
-
                 F product = coefficient;
                 for (const auto &[eval, _] : buf)
                 {
                     product = product * eval;
                 }
                 sum[0] = sum[0] + product;
-
                 for (size_t i = 1; i <= product_indices.size(); ++i)
                 {
                     // 更新eval
@@ -244,18 +222,12 @@ public:
                 }
             }
 
-            /*
-            cout<<"check sum product:"<<endl;
-            for(auto & s:sum){
-                s.print();
-            }
-            cout<<endl;
-            */
+            // 这里是不是可以省略，直接执行上面的代码maxdegree+1次不就行了
 
             if (!product_indices.empty() && product_indices.size() - 1 < state_.extrapolation_aux.size())
             {
                 const auto &[points, weights] = state_.extrapolation_aux[product_indices.size() - 1];
-                for (size_t i = 0; i < state_.poly.aux_info.max_degree; ++i)
+                for (size_t i = 0; i < state_.poly.aux_info.max_degree - product_indices.size(); ++i)
                 {
                     F at = F(static_cast<uint64_t>(product_indices.size() + 1 + i));
                     F extrapolated = extrapolate<F>(points, weights, sum, at);
@@ -271,13 +243,6 @@ public:
                 products_sum[i] += sum[i];
             }
         }
-        /*
-        cout<<"debug prover message:"<<endl;
-        for(auto& e:products_sum){
-            e.print();
-        }
-        cout<<endl;
-        */
         // 更新Prover状态
         state_.poly.flattened_ml_extensions.clear();
         for (const auto &ext : flattened_ml_extensions)
