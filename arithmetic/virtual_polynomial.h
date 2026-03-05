@@ -18,18 +18,16 @@ public:
     size_t max_degree;
     size_t num_variables;
 
-    VPAuxInfo(size_t num_vars = 0) : max_degree(0), num_variables(num_vars)
-    {
-    }
+    VPAuxInfo(size_t num_vars = 0) : max_degree(0), num_variables(num_vars) {}
 };
 
 // 虚拟多项式是使用多个MLE表示多项式的方法
 // aux_info 记录多项式的度数和变量数
-// 设f=c0 * f0 * f1 * f2 + c1 * f3 * f4
+// 设f = c0 * f0 * f1 * f2 + c1 * f3 * f4
 // products 记录每个[系数，乘积项]
 //          在此例子中为：[(c0, [0, 1, 2]), (c1, [3, 4])]
 
-// flattened_ml_extensions 存储所有的MLE，此例子中为f0, f1, f2, f3, f4
+// flattened_ml_extensions 存储所有的MLE，此例子中为 f0, f1, f2, f3, f4
 // raw_pointers_lookup_table 将 fi 映射到 i
 
 template <typename F>
@@ -43,9 +41,7 @@ public:
     vector<pair<F, vector<size_t>>> products;
     vector<shared_ptr<DenseMultilinearExtension<F>>> flattened_ml_extensions;
 
-    VirtualPolynomial(size_t num_variables = 0) : aux_info(num_variables)
-    {
-    }
+    VirtualPolynomial(size_t num_variables = 0) : aux_info(num_variables) {}
 
     // 从MLE创建一个新虚拟多项式
     VirtualPolynomial new_from_mle(
@@ -56,7 +52,6 @@ public:
         poly.aux_info.max_degree = 1;
         poly.aux_info.num_variables = (*mle).num_vars();
 
-        // 待完善，获取mle指针
         auto mle_ptr = mle.get();
         poly.raw_pointers_lookup_table[mle_ptr] = 0;
         poly.products.emplace_back(coefficient, vector<size_t>{0});
@@ -68,23 +63,23 @@ public:
     void printproduct()
     {
         // 输出products的内容
-        std::cout << "Products (" << products.size() << " items):" << std::endl;
+        cout << "Products (" << products.size() << " items):" << std::endl;
         for (size_t i = 0; i < products.size(); ++i)
         {
             const auto &product = products[i];
-            std::cout << "Item " << i << ": coefficient = ";
+            cout << "Item " << i << ": coefficient = ";
             product.first.print();
 
-            std::cout << ", indices = [";
+            cout << ", indices = [";
             for (size_t j = 0; j < product.second.size(); ++j)
             {
-                std::cout << product.second[j];
+                cout << product.second[j];
                 if (j < product.second.size() - 1)
                 {
-                    std::cout << ", ";
+                    cout << ", ";
                 }
             }
-            std::cout << "]" << std::endl;
+            cout << "]" << endl;
         }
     }
     // 添加形为 coe * MLE1 * MLE2 * ... * MLEn的乘积项
@@ -95,6 +90,7 @@ public:
         // 空列表则返回错误
         if (mle_list.empty())
         {
+            cout << "input mle_list is empty." << endl;
             throw;
         }
 
@@ -108,6 +104,7 @@ public:
             // 变量不等则抛出错误
             if ((*mle).num_vars() != aux_info.num_variables)
             {
+                cout << "product has a multipicand with wrong number of variables." << endl;
                 throw;
             }
 
@@ -131,7 +128,7 @@ public:
         products.emplace_back(coefficient, move(indexed_product));
     }
 
-    // 实现VirtualPolynomial * (coe * mle)
+    // 实现 VirtualPolynomial * (coe * mle)
     void mul_by_mle(
         const shared_ptr<DenseMultilinearExtension<F>> &mle,
         const F &coefficient)
@@ -139,6 +136,7 @@ public:
         // 变量数不等抛出错误
         if ((*mle).num_vars() != aux_info.num_variables)
         {
+            cout << "product has a multipicand with wrong number of variables." << endl;
             throw;
         }
 
@@ -173,6 +171,7 @@ public:
         // 变量不一致抛出错误
         if (aux_info.num_variables != point.size())
         {
+            cout << "wrong number of variables." << endl;
             throw;
         }
 
@@ -199,7 +198,6 @@ public:
     }
 
     // 随机生成虚拟多项式,并返回其在布尔超立方体上的总和
-
     pair<VirtualPolynomial, F> rand(
         size_t nv,
         pair<size_t, size_t> num_multiplicands_range,
@@ -231,7 +229,6 @@ public:
     }
 
     // 生成和为0的随机虚拟多项式
-
     VirtualPolynomial rand_zero(
         size_t nv,
         pair<size_t, size_t> num_multiplicands_range,
@@ -239,7 +236,6 @@ public:
     {
         VirtualPolynomial poly(nv);
 
-        // gen是一个使用rd()作种子初始化的标准梅森旋转算法的随机数发生器
         random_device rd;
         mt19937 gen(rd());
 
@@ -264,7 +260,7 @@ public:
     {
         if (aux_info.num_variables > 5)
         {
-            throw std::runtime_error(
+            throw runtime_error(
                 "this function is used for testing only. cannot print more than 5 num_vars");
         }
 
@@ -291,6 +287,7 @@ void build_eq_x_r_helper(
     // r为空，则抛出错误
     if (r.empty())
     {
+        cout << "r is empty!" << endl;
         throw;
     }
     else if (r.size() == 1)
@@ -344,6 +341,7 @@ vector<F> build_eq_x_r_vec(const vector<F> &r)
     // r为空，则抛出错误
     if (r.empty())
     {
+        cout << "r is empty!" << endl;
         throw;
     }
     vector<F> eval;
@@ -372,6 +370,7 @@ VirtualPolynomial<F> build_f_hat(
     // 变量不相等则抛出错误
     if (poly.aux_info.num_variables != r.size())
     {
+        cout << "num_vars mismatch!" << endl;
         throw;
     }
     auto eq_x_r = build_eq_x_r<F>(r);
@@ -390,6 +389,7 @@ F eq_eval(
     // 两个向量长度不相等，抛出错误
     if (x.size() != y.size())
     {
+        cout << "vector's length mismatch!" << endl;
         throw;
     }
     F res = F::one();

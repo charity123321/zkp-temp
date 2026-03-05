@@ -12,7 +12,27 @@ std::vector<bool> bit_decompose(uint64_t input, size_t num_var);
 // 合并求值点
 // [F(2),F(3)],index=2 --> [F(2),F(3),F(1),F(0)]
 template <typename F>
-std::vector<F> gen_eval_point(size_t index, size_t index_len, const std::vector<F> &point);
+vector<F> gen_eval_point(size_t index, size_t index_len, const vector<F> &point)
+{
+    // 分解索引为比特位
+    auto index_bits = bit_decompose(static_cast<uint64_t>(index), index_len);
+
+    // 将比特位转换为域元素
+    vector<F> index_vec;
+    index_vec.reserve(index_len);
+    for (bool bit : index_bits)
+    {
+        index_vec.push_back(F(bit));
+    }
+
+    // 合并 point 和 index_vec
+    vector<F> result;
+    result.reserve(point.size() + index_vec.size());
+    result.insert(result.end(), point.begin(), point.end());
+    result.insert(result.end(), index_vec.begin(), index_vec.end());
+
+    return result;
+}
 
 // 返回合并MLE后的变量数
 size_t get_batched_nv(size_t num_var, size_t polynomials_len);
