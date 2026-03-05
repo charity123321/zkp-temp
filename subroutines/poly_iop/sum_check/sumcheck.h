@@ -11,11 +11,9 @@ template <typename F>
 class SumCheck
 {
 public:
-    // using VirtualPolynomial=VirtualPolynomial<F>;
     using MultilinearExtension = shared_ptr<DenseMultilinearExtension<F>>;
     using SumCheckProof = IOPProof<F>;
     using Transcript = SimpleTranscript;
-    // using SumCheckSubClaim=SumCheckSubClaim<F>;
 
     F extract_sum(SumCheckProof &proof)
     {
@@ -32,6 +30,7 @@ public:
         const VirtualPolynomial<F> &poly,
         Transcript &transcript)
     {
+
         transcript.append_serializable_element("aux info", poly.aux_info);
 
         SumCheckProver<F> prover_state;
@@ -45,13 +44,6 @@ public:
         {
             auto prover_msg = prover_state.prover_round_and_update_state(challenge);
 
-            /*
-            cout<<"debug sumcheck: "<<i<<endl;
-            for(auto& e:prover_msg.evaluations){
-                e.print();
-            }
-            cout<<endl;
-            */
             transcript.append_serializable_element("prover msg", prover_msg);
             prover_msgs.push_back(prover_msg);
             challenge = transcript.get_and_append_challenge<F>("Internal round");

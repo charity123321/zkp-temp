@@ -8,7 +8,6 @@
 #include <vector>
 #include <utility>
 
-// 假设这些头文件存在
 #include "field_and_polynomial/temp.h"
 
 using namespace std;
@@ -17,10 +16,8 @@ using namespace std;
 // 计算 sum_{x \in B_\mu} { \prod_i MLE_i(x) }
 // 并返回MLE列表
 template <typename F>
-pair<vector<shared_ptr<DenseMultilinearExtension<F>>>, F>
-random_mle_list(size_t nv, size_t degree)
+pair<vector<shared_ptr<DenseMultilinearExtension<F>>>, F> random_mle_list(size_t nv, size_t degree)
 {
-
     vector<vector<F>> multiplicands(degree);
     for (auto &vec : multiplicands)
     {
@@ -32,7 +29,7 @@ random_mle_list(size_t nv, size_t degree)
     {
         F product = F::one();
 
-        // 为每个多项式生成随机值并计算乘积
+        // 为每个MLE生成随机值并计算乘积
         for (auto &eval_vec : multiplicands)
         {
             F val = F::random_element();
@@ -54,8 +51,7 @@ random_mle_list(size_t nv, size_t degree)
 
 // 创建和为0的MLEs：固定MLE_1=0即可
 template <typename F>
-vector<shared_ptr<DenseMultilinearExtension<F>>>
-random_zero_mle_list(size_t nv, size_t degree)
+vector<shared_ptr<DenseMultilinearExtension<F>>> random_zero_mle_list(size_t nv, size_t degree)
 {
     vector<vector<F>> multiplicands(degree);
     for (auto &vec : multiplicands)
@@ -100,8 +96,7 @@ vector<F> identity_permutation(size_t num_var, size_t num_chunks)
 }
 
 template <typename F>
-vector<shared_ptr<DenseMultilinearExtension<F>>>
-identity_permutation_mles(size_t num_vars, size_t num_chunks)
+vector<shared_ptr<DenseMultilinearExtension<F>>> identity_permutation_mles(size_t num_vars, size_t num_chunks)
 {
     vector<shared_ptr<DenseMultilinearExtension<F>>> res;
     res.reserve(num_chunks);
@@ -141,7 +136,7 @@ vector<F> random_permutation(size_t num_vars, size_t num_chunks)
     s_perm_vec.reserve(len);
     // 洗牌
     for (size_t i = len; i > 0; --i)
-    {   
+    {
         random_device rd;
         mt19937 gen(rd());
         uniform_int_distribution<size_t> dist(0, s_id_vec.size() - 1);
@@ -153,8 +148,7 @@ vector<F> random_permutation(size_t num_vars, size_t num_chunks)
 }
 
 template <typename F>
-vector<shared_ptr<DenseMultilinearExtension<F>>>
-random_permutation_mles(size_t num_vars, size_t num_chunks)
+vector<shared_ptr<DenseMultilinearExtension<F>>> random_permutation_mles(size_t num_vars, size_t num_chunks)
 {
     vector<F> s_perm_vec = random_permutation<F>(num_vars, num_chunks);
     vector<shared_ptr<DenseMultilinearExtension<F>>> res;
@@ -195,9 +189,9 @@ DenseMultilinearExtension<F> fix_variables_no_par(
 
     return DenseMultilinearExtension<F>(
         nv - dim,
-        std::vector<F>(poly_evals.begin(), poly_evals.begin() + (1ULL << (nv - dim))));
+        vector<F>(poly_evals.begin(), poly_evals.begin() + (1ULL << (nv - dim))));
 }
-// 固定所有变量:MLE(point)
+// 在某个点处的值: MLE(point)
 template <typename F>
 F evaluation_no_par(
     const DenseMultilinearExtension<F> &poly,
@@ -206,7 +200,7 @@ F evaluation_no_par(
     assert(poly.num_vars() == point.size() &&
            "Number of variables must match point dimension");
 
-    return fix_variables_no_par(poly, point).evaluations[0];
+    return fix_variables_no_par(poly, point).get_evaluations()[0];
 }
 
 // 合并多个MLE，将多个MLE的求值列表直接拼接即可（若需要则补零）
@@ -219,7 +213,8 @@ shared_ptr<DenseMultilinearExtension<F>> merge_polynomial(
     {
         if (nv != poly.num_vars())
         {
-            throw invalid_argument("num_vars do not match for polynomials");
+            cout << "num_vars do not match for polynomials" << endl;
+            throw;
         }
     }
     // 计算合并后的变量数量
@@ -248,7 +243,7 @@ shared_ptr<DenseMultilinearExtension<F>> merge_polynomial(
     }
 
     return make_shared<DenseMultilinearExtension<F>>(
-        DenseMultilinearExtension<F>::from_evaluations_vec(merge_nv, move(scalars)));
+        DenseMultilinearExtension<F>(merge_nv, move(scalars)));
 }
 
 // 从后往前固定变量
@@ -272,7 +267,7 @@ DenseMultilinearExtension<F> fix_last_variable_no_par(
         res.push_back(move(val));
     }
 
-    return DenseMultilinearExtension<F>::from_evaluations_vec(nv - 1, move(res));
+    return DenseMultilinearExtension<F>(nv - 1, move(res));
 }
 
 template <typename F>
