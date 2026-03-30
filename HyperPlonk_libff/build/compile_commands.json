@@ -1,0 +1,12 @@
+[
+{
+  "directory": "/home/yan/zkp-temp/HyperPlonk_libff/build",
+  "command": "/usr/bin/c++   -I/home/yan/zkp-temp/HyperPlonk_libff/. -I/home/yan/zkp-temp/HyperPlonk_libff/include -I/home/yan/zkp-temp/HyperPlonk_libff/arithmetic -I/home/yan/zkp-temp/HyperPlonk_libff/subroutines/poly_iop -I/home/yan/zkp-temp/HyperPlonk_libff/subroutines/pcs -I/home/yan/zkp-temp/HyperPlonk_libff/hyperplonk -I/home/yan/zkp-temp/HyperPlonk_libff/transcript -I/home/yan/zkp-temp/HyperPlonk_libff/field_and_polynomial    -Wall -Wextra -Werror -std=gnu++17 -o CMakeFiles/HyperPlonk_libff.dir/main.cpp.o -c /home/yan/zkp-temp/HyperPlonk_libff/main.cpp",
+  "file": "/home/yan/zkp-temp/HyperPlonk_libff/main.cpp"
+},
+{
+  "directory": "/home/yan/zkp-temp/HyperPlonk_libff/build",
+  "command": "/usr/bin/c++   -I/home/yan/zkp-temp/HyperPlonk_libff/. -I/home/yan/zkp-temp/HyperPlonk_libff/include -I/home/yan/zkp-temp/HyperPlonk_libff/arithmetic -I/home/yan/zkp-temp/HyperPlonk_libff/subroutines/poly_iop -I/home/yan/zkp-temp/HyperPlonk_libff/subroutines/pcs -I/home/yan/zkp-temp/HyperPlonk_libff/hyperplonk -I/home/yan/zkp-temp/HyperPlonk_libff/transcript -I/home/yan/zkp-temp/HyperPlonk_libff/field_and_polynomial    -Wall -Wextra -Werror -std=gnu++17 -o CMakeFiles/HyperPlonk_libff.dir/arithmetic/util.cpp.o -c /home/yan/zkp-temp/HyperPlonk_libff/arithmetic/util.cpp",
+  "file": "/home/yan/zkp-temp/HyperPlonk_libff/arithmetic/util.cpp"
+}
+]
