@@ -1,0 +1,144 @@
+#ifndef TEMP_H
+#define TEMP_H
+
+#include <iostream>
+#include <vector>
+#include <cassert>
+#include <memory>
+//#include <libff/common/utils.hpp>
+
+
+template <typename F>
+class DenseMultilinearExtension
+{
+private:
+    size_t num_vars_;
+    std::vector<F> evaluations_;
+
+public:
+    DenseMultilinearExtension(size_t num_vars)
+        : num_vars_(num_vars), evaluations_(1ULL << num_vars, F::zero()) {}
+
+    DenseMultilinearExtension(size_t num_vars, const std::vector<F> &evaluations)
+        : num_vars_(num_vars), evaluations_(evaluations) {}
+
+    size_t num_vars() const { return num_vars_; }
+
+    const std::vector<F> &get_evaluations() const { return evaluations_; }
+
+    DenseMultilinearExtension<F> rand(size_t num_var)
+    {
+        std::vector<F> evals;
+        evals.reserve(1ULL << num_var);
+        for (size_t i = 0; i < (1ULL << num_var); ++i)
+        {
+            //evals.push_back(libff::random_element_non_zero<F>());
+            evals.push_back(F::random_element());
+        }
+        return DenseMultilinearExtension<F>(num_var, evals);
+    }
+
+    /*
+        DenseMultilinearExtension<F> from_evaluations_slice(
+            size_t num_vars, const F* evaluations
+        ) {
+            return from_evaluations_vec(num_vars,std::vector(evaluations));
+        }
+    */
+
+    /*
+    DenseMultilinearExtension<F> from_evaluations_slice(
+        size_t num_vars, const F *evaluations, size_t evaluations_size)
+    {
+        return from_evaluations_vec(
+            num_vars,
+            std::vector<F>(evaluations, evaluations + evaluations_size));
+    }
+
+    DenseMultilinearExtension<F> from_evaluations_vec(
+        size_t num_vars, std::vector<F> evaluations)
+    {
+        assert(evaluations.size() == (1ULL << num_vars) && "The size of evaluations should be 2^num_vars.");
+
+        return DenseMultilinearExtension<F>(num_vars, move(evaluations));
+    }
+    */
+
+    DenseMultilinearExtension<F> fix_variables(const std::vector<F> &partial_point)
+    {
+        assert(partial_point.size() <= num_vars_ &&
+               "invalid size of partial point");
+
+        std::vector<F> poly = evaluations_;
+        size_t nv = num_vars_;
+        size_t dim = partial_point.size();
+
+        // 从左到右评估部分点的单个变量
+        for (size_t i = 1; i < dim + 1; ++i)
+        {
+            const F &r = partial_point[i - 1];
+            for (size_t b = 0; b < (1ULL << (nv - i)); ++b)
+            {
+                size_t left_index = b << 1;
+                size_t right_index = left_index + 1;
+                const F &left = poly[left_index];
+                const F &right = poly[right_index];
+                poly[b] = left + r * (right - left);
+            }
+        }
+
+        return DenseMultilinearExtension<F>(
+            nv - dim,
+            std::vector<F>(poly.begin(), poly.begin() + (1ULL << (nv - dim))));
+    }
+    // 固定所有变量
+    F evaluate(const std::vector<F> &point)
+    {
+        /*
+        if (point.size() == num_vars_)
+        {
+            DenseMultilinearExtension<F> fixed = fix_variables(point);
+            return fixed.evaluations_[0];
+        }
+        */
+        DenseMultilinearExtension<F> fixed = fix_variables(point);
+        return fixed.evaluations_[0];
+    }
+
+    void scalar_multiply(const F &scalar)
+    {
+        for (auto &eval : evaluations_)
+        {
+            eval *= scalar;
+        }
+    }
+
+    DenseMultilinearExtension operator*(const F &scalar) const
+    {
+        DenseMultilinearExtension result = *this;
+        result.scalar_multiply(scalar);
+        return result;
+    }
+
+    DenseMultilinearExtension &operator+=(const DenseMultilinearExtension &other)
+    {
+        assert(num_vars_ == other.num_vars_);
+        assert(evaluations_.size() == other.evaluations_.size());
+
+        for (size_t i = 0; i < evaluations_.size(); ++i)
+        {
+            evaluations_[i] += other.evaluations_[i];
+        }
+
+        return *this;
+    }
+
+    DenseMultilinearExtension operator+(const DenseMultilinearExtension &other) const
+    {
+        DenseMultilinearExtension result = *this;
+        result += other;
+        return result;
+    }
+};
+
+#endif
