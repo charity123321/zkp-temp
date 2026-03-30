@@ -122,7 +122,7 @@ public:
 
     DenseMultilinearExtension &operator+=(const DenseMultilinearExtension &other)
     {
-        assert(num_vars_ = other.num_vars_);
+        assert(num_vars_ == other.num_vars_);
         assert(evaluations_.size() == other.evaluations_.size());
 
         for (size_t i = 0; i < evaluations_.size(); ++i)
