@@ -1,0 +1,3 @@
+/home/lgq/sys/zkp-temp/HyperPlonk_relic/build/CMakeFiles/HyperPlonk_relic.dir
+/home/lgq/sys/zkp-temp/HyperPlonk_relic/build/CMakeFiles/edit_cache.dir
+/home/lgq/sys/zkp-temp/HyperPlonk_relic/build/CMakeFiles/rebuild_cache.dir
