@@ -15,8 +15,9 @@ find_package(OpenMP REQUIRED)
 
 #set(AVXMSM_LOCAL_ROOT "/home/lgq/sys/SimdMSM/AVX-MSM") 
 
-set(MSM_LIBRARY "/home/lgq/sys/zkp-temp/HyperPlonk_relic/SimdMSM/AVX-MSM/demo/381/build/libmsm.a")
-set(RELIC_LIBRARY "/home/lgq/sys/zkp-temp/HyperPlonk_relic/SimdMSM/AVX-MSM/demo/381/target/lib/librelic_s.a")
+# ================= 此处修改为实际绝对路径 ====================
+set(MSM_LIBRARY "/path/to/zkp-temp/HyperPlonk_relic/SimdMSM/AVX-MSM/demo/381/build/libmsm.a")
+set(RELIC_LIBRARY "/path/to/zkp-temp/HyperPlonk_relic/SimdMSM/AVX-MSM/demo/381/target/lib/librelic_s.a")
 
 if(NOT MSM_LIBRARY OR NOT RELIC_LIBRARY)
     message(FATAL_ERROR "❌ 找不到静态库！MSM状态: ${MSM_LIBRARY}, RELIC状态: ${RELIC_LIBRARY}")
